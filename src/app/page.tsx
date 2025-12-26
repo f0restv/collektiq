@@ -87,13 +87,6 @@ export default function Home() {
           </Link>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-700 mt-16 py-8">
-        <div className="container mx-auto px-4 text-center text-slate-500">
-          <p>&copy; {new Date().getFullYear()} KollektIQ. All rights reserved.</p>
-        </div>
-      </footer>
     </main>
   )
 }
