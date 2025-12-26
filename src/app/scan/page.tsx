@@ -7,6 +7,7 @@ export default function ScanPage() {
   const [image, setImage] = useState<string | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
   const [result, setResult] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -30,38 +31,33 @@ export default function ScanPage() {
   const analyze = async () => {
     if (!image) return
     setAnalyzing(true)
+    setError(null)
     
-    // TODO: Call ProductIntelligence API
-    // For now, simulate response
-    await new Promise(r => setTimeout(r, 2000))
-    
-    setResult({
-      identification: {
-        type: 'Coin',
-        name: '1921 Morgan Silver Dollar',
-        mint: 'Philadelphia',
-        year: 1921,
-      },
-      grade: {
-        estimate: 'MS-63',
-        confidence: 0.85,
-        notes: 'Light bag marks on cheek, good luster'
-      },
-      pricing: {
-        ebayAvg: 85,
-        ebayLow: 65,
-        ebayHigh: 120,
-        redbook: 95,
-        greysheet: 72,
-        buyNow: 79,
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: [image] }),
+      })
+      
+      if (!res.ok) {
+        throw new Error('Analysis failed')
       }
-    })
-    setAnalyzing(false)
+      
+      const data = await res.json()
+      setResult(data)
+    } catch (err) {
+      setError('Failed to analyze image. Please try again.')
+      console.error(err)
+    } finally {
+      setAnalyzing(false)
+    }
   }
 
   const reset = () => {
     setImage(null)
     setResult(null)
+    setError(null)
   }
 
   return (
@@ -72,6 +68,12 @@ export default function ScanPage() {
         </Link>
 
         <h1 className="text-3xl font-bold text-white mb-8">Scan Your Item</h1>
+
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
 
         {!image ? (
           <div
@@ -123,18 +125,31 @@ export default function ScanPage() {
             {/* Identification */}
             <div className="bg-slate-800 rounded-xl p-6">
               <h2 className="text-lg font-semibold text-white mb-4">Identification</h2>
-              <p className="text-2xl font-bold text-emerald-400">{result.identification.name}</p>
-              <p className="text-slate-400">{result.identification.mint} Mint • {result.identification.year}</p>
+              <p className="text-2xl font-bold text-emerald-400">{result.identification?.name}</p>
+              <p className="text-slate-400">
+                {[result.identification?.mint, result.identification?.year, result.identification?.denomination]
+                  .filter(Boolean)
+                  .join(' • ')}
+              </p>
+              {result.identification?.description && (
+                <p className="text-slate-300 mt-2">{result.identification.description}</p>
+              )}
             </div>
 
             {/* Grade */}
             <div className="bg-slate-800 rounded-xl p-6">
               <h2 className="text-lg font-semibold text-white mb-4">Estimated Grade</h2>
               <div className="flex items-center gap-4">
-                <span className="text-3xl font-bold text-white">{result.grade.estimate}</span>
-                <span className="text-slate-400">({Math.round(result.grade.confidence * 100)}% confidence)</span>
+                <span className="text-3xl font-bold text-white">{result.grade?.estimate}</span>
+                {result.grade?.confidence && (
+                  <span className="text-slate-400">
+                    ({Math.round(result.grade.confidence * 100)}% confidence)
+                  </span>
+                )}
               </div>
-              <p className="text-slate-400 mt-2">{result.grade.notes}</p>
+              {result.grade?.notes && (
+                <p className="text-slate-400 mt-2">{result.grade.notes}</p>
+              )}
             </div>
 
             {/* Pricing */}
@@ -143,32 +158,40 @@ export default function ScanPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-slate-400 text-sm">eBay Avg</p>
-                  <p className="text-white text-xl font-semibold">${result.pricing.ebayAvg}</p>
+                  <p className="text-white text-xl font-semibold">${result.pricing?.ebayAvg}</p>
                 </div>
                 <div>
                   <p className="text-slate-400 text-sm">eBay Range</p>
-                  <p className="text-white text-xl font-semibold">${result.pricing.ebayLow} - ${result.pricing.ebayHigh}</p>
+                  <p className="text-white text-xl font-semibold">
+                    ${result.pricing?.ebayLow} - ${result.pricing?.ebayHigh}
+                  </p>
                 </div>
-                <div>
-                  <p className="text-slate-400 text-sm">Redbook</p>
-                  <p className="text-white text-xl font-semibold">${result.pricing.redbook}</p>
-                </div>
-                <div>
-                  <p className="text-slate-400 text-sm">Greysheet</p>
-                  <p className="text-white text-xl font-semibold">${result.pricing.greysheet}</p>
-                </div>
+                {result.pricing?.redbook && (
+                  <div>
+                    <p className="text-slate-400 text-sm">Redbook</p>
+                    <p className="text-white text-xl font-semibold">${result.pricing.redbook}</p>
+                  </div>
+                )}
+                {result.pricing?.greysheet && (
+                  <div>
+                    <p className="text-slate-400 text-sm">Greysheet</p>
+                    <p className="text-white text-xl font-semibold">${result.pricing.greysheet}</p>
+                  </div>
+                )}
               </div>
               
-              <div className="mt-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-                <p className="text-emerald-400 text-sm mb-1">Buy Now Price</p>
-                <p className="text-white text-2xl font-bold">${result.pricing.buyNow}</p>
-                <Link
-                  href="/shop"
-                  className="inline-block mt-3 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg transition text-sm"
-                >
-                  View Available
-                </Link>
-              </div>
+              {result.pricing?.buyNow && (
+                <div className="mt-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                  <p className="text-emerald-400 text-sm mb-1">Buy Now Price</p>
+                  <p className="text-white text-2xl font-bold">${result.pricing.buyNow}</p>
+                  <Link
+                    href="/shop"
+                    className="inline-block mt-3 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg transition text-sm"
+                  >
+                    View Available
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Actions */}
