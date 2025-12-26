@@ -67,8 +67,71 @@ const socialLinks = [
 ];
 
 export function Footer() {
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setSubscribing(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setSubscribed(true);
+    setSubscribing(false);
+    setEmail('');
+  };
+
   return (
     <footer className="bg-slate-900 border-t border-slate-800">
+      {/* Newsletter Section */}
+      <div className="border-b border-slate-800">
+        <div className="container mx-auto px-4 py-10">
+          <div className="max-w-2xl mx-auto text-center">
+            <h3 className="text-xl font-bold text-white mb-2">
+              Stay Updated
+            </h3>
+            <p className="text-slate-400 mb-6">
+              Get the latest collectibles, market insights, and exclusive deals delivered to your inbox.
+            </p>
+            {subscribed ? (
+              <div className="flex items-center justify-center gap-2 text-emerald-400">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Thanks for subscribing!</span>
+              </div>
+            ) : (
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                  className="flex-1 bg-slate-800 text-white placeholder-slate-400 px-4 py-3 rounded-lg border border-slate-700 focus:border-emerald-500 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={subscribing}
+                  className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white px-6 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
+                >
+                  {subscribing ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Subscribing...
+                    </>
+                  ) : (
+                    'Subscribe'
+                  )}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           {/* Brand */}
