@@ -19,6 +19,15 @@ export interface GradeEstimate {
   notes: string;
 }
 
+export interface PricingSource {
+  source: string;
+  prices: {
+    low: number;
+    mid: number;
+    high: number;
+  };
+}
+
 export interface Pricing {
   ebayAvg: number;
   ebayLow: number;
@@ -27,6 +36,7 @@ export interface Pricing {
   greysheet?: number;
   buyNow?: number;
   buyNowUrl?: string;
+  sources?: PricingSource[];
 }
 
 export interface AnalyzeRequest {

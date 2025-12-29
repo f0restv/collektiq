@@ -9,6 +9,8 @@ import type {
 } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const PLATFORM_URL = process.env.NEXT_PUBLIC_PLATFORM_URL || process.env.PLATFORM_API_URL;
+const PLATFORM_API_KEY = process.env.PLATFORM_API_KEY;
 
 interface ProductsResponse {
   products: Product[];
@@ -90,6 +92,55 @@ export const api = {
     return res.json();
   },
 };
+
+// Platform API functions (server-side)
+export async function fetchInventory(options: {
+  category?: string;
+  query?: string;
+  limit?: number;
+  cursor?: string;
+} = {}): Promise<{ items: Product[]; nextCursor: string | null }> {
+  if (!PLATFORM_URL || !PLATFORM_API_KEY) {
+    throw new Error('Platform not configured');
+  }
+
+  const params = new URLSearchParams();
+  if (options.category) params.set('category', options.category);
+  if (options.query) params.set('q', options.query);
+  if (options.limit) params.set('limit', String(options.limit));
+  if (options.cursor) params.set('cursor', options.cursor);
+
+  const response = await fetch(
+    `${PLATFORM_URL}/api/v1/inventory?${params}`,
+    {
+      headers: { 'x-api-key': PLATFORM_API_KEY },
+      next: { revalidate: 60 },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch inventory');
+  }
+
+  return response.json();
+}
+
+export async function fetchProduct(id: string): Promise<Product | null> {
+  if (!PLATFORM_URL || !PLATFORM_API_KEY) {
+    throw new Error('Platform not configured');
+  }
+
+  const response = await fetch(
+    `${PLATFORM_URL}/api/v1/inventory/${id}`,
+    {
+      headers: { 'x-api-key': PLATFORM_API_KEY },
+      next: { revalidate: 60 },
+    }
+  );
+
+  if (!response.ok) return null;
+  return response.json();
+}
 
 // Re-export types for convenience
 export type {

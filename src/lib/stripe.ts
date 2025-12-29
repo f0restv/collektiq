@@ -1,29 +1,13 @@
 import Stripe from 'stripe';
+import type { CartItem, ShippingAddress } from './checkout';
+
+export type { CartItem, ShippingAddress } from './checkout';
 
 // Server-side Stripe instance
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-12-18.acacia',
   typescript: true,
 });
-
-// Types for checkout
-export interface CartItem {
-  productId: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
-
-export interface ShippingAddress {
-  name: string;
-  line1: string;
-  line2?: string;
-  city: string;
-  state: string;
-  postal_code: string;
-  country: string;
-}
 
 export interface CreateCheckoutParams {
   items: CartItem[];
@@ -136,30 +120,4 @@ export function constructWebhookEvent(
   webhookSecret: string
 ): Stripe.Event {
   return stripe.webhooks.constructEvent(payload, signature, webhookSecret);
-}
-
-// Format price for display
-export function formatPrice(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
-}
-
-// Calculate order total
-export function calculateTotal(items: CartItem[]): {
-  subtotal: number;
-  tax: number;
-  total: number;
-} {
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const taxRate = 0.0825; // 8.25% tax rate (example)
-  const tax = subtotal * taxRate;
-  const total = subtotal + tax;
-
-  return {
-    subtotal,
-    tax,
-    total,
-  };
 }

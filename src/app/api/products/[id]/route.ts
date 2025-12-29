@@ -21,15 +21,25 @@ interface PlatformProduct {
   mint?: string;
   certNumber?: string;
   grade?: string;
+  composition?: string;
+  weight?: string;
+  diameter?: string;
+  certification?: string;
 }
 
-interface PlatformInventoryResponse {
-  items: PlatformProduct[];
-  nextCursor: string | null;
-  total?: number;
-}
+function transformProduct(item: PlatformProduct): Product & {
+  seller?: string;
+  details?: Record<string, string | number>;
+} {
+  const details: Record<string, string | number> = {};
+  if (item.year) details.year = item.year;
+  if (item.mint) details.mint = item.mint;
+  if (item.composition) details.composition = item.composition;
+  if (item.weight) details.weight = item.weight;
+  if (item.diameter) details.diameter = item.diameter;
+  if (item.certification) details.certification = item.certification;
+  if (item.certNumber) details.certNumber = item.certNumber;
 
-function transformProduct(item: PlatformProduct): Product {
   return {
     id: item.id,
     name: item.title,
@@ -44,10 +54,15 @@ function transformProduct(item: PlatformProduct): Product {
     certNumber: item.certNumber,
     inStock: true,
     createdAt: item.createdAt,
+    seller: item.client?.name,
+    details: Object.keys(details).length > 0 ? details : undefined,
   };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   if (!PLATFORM_URL || !API_KEY) {
     return NextResponse.json(
       { error: 'Platform not configured' },
@@ -55,23 +70,11 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { searchParams } = new URL(request.url);
-  const category = searchParams.get('category') as CollectibleCategory | null;
-  const search = searchParams.get('search');
-  const limit = parseInt(searchParams.get('limit') || '50', 10);
-  const offset = parseInt(searchParams.get('offset') || '0', 10);
+  const { id } = await params;
 
   try {
-    const params = new URLSearchParams();
-    if (category) params.set('category', category);
-    if (search) params.set('q', search);
-    params.set('limit', String(limit));
-    if (offset > 0) {
-      params.set('offset', String(offset));
-    }
-
     const response = await fetch(
-      `${PLATFORM_URL}/api/v1/inventory?${params}`,
+      `${PLATFORM_URL}/api/v1/inventory/${id}`,
       {
         headers: { 'x-api-key': API_KEY },
         next: { revalidate: 60 },
@@ -79,26 +82,24 @@ export async function GET(request: NextRequest) {
     );
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Failed to fetch inventory' }));
+      if (response.status === 404) {
+        return NextResponse.json(
+          { error: 'Product not found' },
+          { status: 404 }
+        );
+      }
+      const error = await response.json().catch(() => ({ error: 'Failed to fetch product' }));
       return NextResponse.json(error, { status: response.status });
     }
 
-    const data: PlatformInventoryResponse = await response.json();
-    const products = data.items.map(transformProduct);
+    const item: PlatformProduct = await response.json();
+    const product = transformProduct(item);
 
-    return NextResponse.json({
-      products,
-      pagination: {
-        total: data.total || products.length,
-        limit,
-        offset,
-        hasMore: data.nextCursor !== null,
-      },
-    });
+    return NextResponse.json(product);
   } catch (error) {
-    console.error('Platform inventory error:', error);
+    console.error('Platform product error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch products' },
+      { error: 'Failed to fetch product' },
       { status: 500 }
     );
   }

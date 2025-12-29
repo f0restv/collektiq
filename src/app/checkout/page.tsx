@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { CartItem, ShippingAddress } from '@/lib/stripe';
-import { formatPrice, calculateTotal } from '@/lib/stripe';
+import type { CartItem, ShippingAddress } from '@/lib/checkout';
+import { formatPrice, calculateTotal } from '@/lib/checkout';
 
 type CheckoutStep = 'cart' | 'address' | 'payment';
 
