@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import type { Product, CollectibleCategory } from '@/types';
+import { AddToCartButton } from './AddToCartButton';
 
 const PLATFORM_URL = process.env.PLATFORM_API_URL;
 const API_KEY = process.env.PLATFORM_API_KEY;
@@ -133,19 +134,24 @@ export default async function ItemPage({
 
           {/* Details */}
           <div>
-            <h1 className="text-2xl font-bold text-white mb-2">{product.name}</h1>
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <h1 className="text-2xl font-bold text-white">{product.name}</h1>
+              <span className="px-2 py-1 bg-slate-800 rounded text-xs text-slate-400 uppercase shrink-0">
+                {product.category.replace('-', ' ')}
+              </span>
+            </div>
             {product.grade && (
               <p className="text-emerald-400 font-semibold mb-4">{product.grade}</p>
             )}
 
-            <p className="text-3xl font-bold text-white mb-6">${product.price}</p>
+            <p className="text-3xl font-bold text-white mb-6">${product.price.toLocaleString()}</p>
 
-            <Link
-              href={`/checkout?productId=${product.id}`}
-              className="block w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-lg transition text-center mb-4"
-            >
-              Buy Now
-            </Link>
+            <AddToCartButton
+              productId={product.id}
+              name={product.name}
+              price={product.price}
+              image={product.image}
+            />
 
             {product.description && (
               <p className="text-slate-400 mb-6">{product.description}</p>
@@ -153,7 +159,7 @@ export default async function ItemPage({
 
             {product.details && Object.keys(product.details).length > 0 && (
               <div className="bg-slate-800 rounded-xl p-4">
-                <h3 className="text-white font-semibold mb-3">Details</h3>
+                <h3 className="text-white font-semibold mb-3">Specifications</h3>
                 <dl className="space-y-2 text-sm">
                   {Object.entries(product.details).map(([key, value]) => (
                     <div key={key} className="flex justify-between">

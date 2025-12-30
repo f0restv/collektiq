@@ -13,7 +13,8 @@ const navLinks = [
 
 const accountLinks = [
   { href: '/account', label: 'Dashboard' },
-  { href: '/account/submissions', label: 'My Submissions' },
+  { href: '/account/collection', label: 'My Collection' },
+  { href: '/account/submissions', label: 'Submissions' },
   { href: '/account/payouts', label: 'Payouts' },
   { href: '/account/settings', label: 'Settings' },
 ];

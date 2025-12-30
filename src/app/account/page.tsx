@@ -65,27 +65,34 @@ export default async function AccountPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
           <Link
             href="/scan"
             className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl p-4 text-center transition"
           >
             <span className="text-2xl block mb-2">📸</span>
-            <span className="font-medium">Submit New Item</span>
+            <span className="font-medium">Scan Item</span>
+          </Link>
+          <Link
+            href="/account/collection"
+            className="bg-slate-800 hover:bg-slate-700 text-white rounded-xl p-4 text-center transition"
+          >
+            <span className="text-2xl block mb-2">📁</span>
+            <span className="font-medium">My Collection</span>
           </Link>
           <Link
             href="/account/submissions"
             className="bg-slate-800 hover:bg-slate-700 text-white rounded-xl p-4 text-center transition"
           >
             <span className="text-2xl block mb-2">📦</span>
-            <span className="font-medium">View Submissions</span>
+            <span className="font-medium">Submissions</span>
           </Link>
           <Link
             href="/account/payouts"
             className="bg-slate-800 hover:bg-slate-700 text-white rounded-xl p-4 text-center transition"
           >
             <span className="text-2xl block mb-2">💰</span>
-            <span className="font-medium">Payout History</span>
+            <span className="font-medium">Payouts</span>
           </Link>
         </div>
 

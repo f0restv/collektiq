@@ -26,11 +26,21 @@ interface PlatformResponse {
     set?: string;
     manufacturer?: string;
     certNumber?: string;
+    confidence?: number;
   };
   grade: {
-    estimate: string;
+    grade: string;
+    numericGrade?: number | null;
     confidence: number;
     notes?: string;
+    details?: {
+      surfaces?: string;
+      centering?: string;
+      corners?: string;
+      edges?: string;
+      strike?: string;
+      luster?: string;
+    };
   };
   searchTerms: string[];
   pricing: {
@@ -83,7 +93,13 @@ export async function POST(request: NextRequest) {
     // Transform to match existing frontend expectations
     return NextResponse.json({
       identification: data.identification,
-      grade: data.grade,
+      grade: {
+        estimate: data.grade.grade,
+        numericGrade: data.grade.numericGrade,
+        confidence: data.grade.confidence,
+        notes: data.grade.notes,
+        details: data.grade.details,
+      },
       searchTerms: data.searchTerms,
       pricing: {
         ebayAvg: data.pricing.estimated.mid,
