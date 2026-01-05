@@ -80,3 +80,25 @@ export interface QuoteResponse {
     buyRate: number;
   };
 }
+
+// Platform.gold scraper types
+export interface PlatformGoldItem {
+  id: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  image: string;
+  url: string;
+  inStock: boolean;
+  category?: string;
+  grade?: string;
+  certNumber?: string;
+  scrapedAt: string;
+}
+
+export interface PlatformGoldScrapeResult {
+  items: PlatformGoldItem[];
+  totalItems: number;
+  scrapedAt: string;
+  source: 'platform.gold';
+}
