@@ -80,3 +80,6 @@ export interface QuoteResponse {
     buyRate: number;
   };
 }
+
+// Re-export valuation types
+export * from './valuation';
